@@ -10,7 +10,7 @@ const db = require('./db');
 
 const reviewSync = require('./lib/reviewSync')(db);
 
-const indexRouter = require('./routes/index');
+const indexRouter = require('./routes/index')(db);
 
 const app = express();
 
@@ -34,19 +34,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 
-
-
-
-let executionInterval = 1;
+const executionInterval = 30;
 
 let j = schedule.scheduleJob(`*/${executionInterval} * * * *`, function(){
-  console.log('The answer to life, the universe, and everything!');
-
+  reviewSync.loadAllReviews();
 });
 
-reviewSync.loadAppReview('product-upsell');
-
-
+reviewSync.loadAllReviews();
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -66,32 +60,8 @@ app.use(function(err, req, res, next) {
 
 
 // sync the database
-db.sequelize.sync().then(() => {
+db.sequelize.sync({force:true}).then(() => {
   // {force:true}
-
-  // let appNames = [
-  //   'product-upsell',
-  //   'product-discount',
-  //   'store-locator',
-  //   'product-options',
-  //   'quantity-breaks',
-  //   'product-bundles',
-  //   'customer-pricing',
-  //   'product-builder',
-  //   'social-triggers',
-  //   'recurring-orders',
-  //   'multi-currency',
-  //   'quickbooks-online',
-  //   'xero',
-  //   'the-bold-brain'
-  // ];
-  //
-  // appNames.map((appName) => {
-  //   db.app.upsert({ app_slug: appName }).then(app => {
-  //     console.log('Insert success!', JSON.stringify(app))
-  //   });
-  // });
-
 });
 
 
